@@ -2,84 +2,135 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>Percentil de Pressão Arterial Pediátrica</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Classificação da Pressão Arterial Pediátrica</title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 20px; }
-        label { display: block; margin-top: 10px; }
-        select, input { padding: 5px; margin-top: 5px; }
-        button { margin-top: 15px; padding: 8px 12px; }
-        .resultado { margin-top: 20px; font-weight: bold; }
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f9f9f9;
+        }
+        h2 {
+            text-align: center;
+        }
+        label {
+            font-weight: bold;
+        }
+        .form-group {
+            margin-bottom: 10px;
+        }
+        input, select, button {
+            padding: 8px;
+            margin-top: 5px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .resultado {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #e9ecef;
+            border-radius: 5px;
+        }
     </style>
 </head>
 <body>
-    <h1>Calculadora de Percentil - PA Pediátrica</h1>
 
-    <label>Sexo:
-        <select id="sexo">
-            <option value="M">Masculino</option>
-            <option value="F">Feminino</option>
-        </select>
-    </label>
+<h2>Classificação da Pressão Arterial Pediátrica</h2>
 
-    <label>Tipo de Pressão:
-        <select id="tipo">
-            <option value="SBP">Sistólica (SBP)</option>
-            <option value="DBP">Diastólica (DBP)</option>
-        </select>
-    </label>
+<div class="form-group">
+    <label for="idade">Idade (anos):</label>
+    <input type="number" id="idade" min="1" max="17" step="1">
+</div>
 
-    <label>Idade (anos): <input type="number" id="idade" step="0.1"></label>
-    <label>Z Altura (Zht): <input type="number" id="zht" step="0.01"></label>
-    <label>Valor PA (mmHg): <input type="number" id="pa" step="0.1"></label>
+<div class="form-group">
+    <label for="sexo">Sexo:</label>
+    <select id="sexo">
+        <option value="masculino">Masculino</option>
+        <option value="feminino">Feminino</option>
+    </select>
+</div>
 
-    <button onclick="calcularPercentil()">Calcular</button>
+<div class="form-group">
+    <label for="altura">Altura (cm):</label>
+    <input type="number" id="altura" min="50" max="200" step="1">
+</div>
 
-    <div class="resultado" id="resultado"></div>
+<div class="form-group">
+    <label for="pas">Pressão Arterial Sistólica (mmHg):</label>
+    <input type="number" id="pas" min="50" max="200" step="1">
+</div>
 
-    <script>
-        const coeficientes = {
-            M: {
-                SBP: { alpha: 102.19768, beta1: 1.82416, beta2: 0.12794, beta3: -0.00235, beta4: 0.00146, gamma1: 2.73157, gamma2: 0.21844, gamma3: -0.00135, gamma4: -0.01014, sigma: 10.7128 },
-                DBP: { alpha: 61.10206, beta1: 0.93801, beta2: 0.15915, beta3: -0.00412, beta4: 0.00092, gamma1: 1.15633, gamma2: 0.06492, gamma3: -0.00107, gamma4: -0.00218, sigma: 8.6741 }
-            },
-            F: {
-                SBP: { alpha: 102.01027, beta1: 1.91542, beta2: 0.02135, beta3: 0.00096, beta4: 0.00105, gamma1: 2.77393, gamma2: 0.08445, gamma3: 0.00123, gamma4: -0.00944, sigma: 10.4855 },
-                DBP: { alpha: 60.57968, beta1: 1.07542, beta2: 0.07624, beta3: -0.00199, beta4: 0.00064, gamma1: 1.19016, gamma2: 0.04356, gamma3: -0.00012, gamma4: -0.00170, sigma: 8.4301 }
-            }
-        };
+<div class="form-group">
+    <label for="pad">Pressão Arterial Diastólica (mmHg):</label>
+    <input type="number" id="pad" min="30" max="150" step="1">
+</div>
 
-        function calcularPercentil() {
-            const sexo = document.getElementById('sexo').value;
-            const tipo = document.getElementById('tipo').value;
-            const idade = parseFloat(document.getElementById('idade').value);
-            const zht = parseFloat(document.getElementById('zht').value);
-            const pa = parseFloat(document.getElementById('pa').value);
+<button onclick="classificarPA()">Classificar</button>
 
-            if (isNaN(idade) || isNaN(zht) || isNaN(pa)) {
-                document.getElementById('resultado').innerText = 'Preencha todos os campos corretamente.';
-                return;
-            }
+<div id="resultado" class="resultado"></div>
 
-            const c = coeficientes[sexo][tipo];
+<script>
+    // Tabela simulada - substitua pelos valores reais extraídos da tabela oficial
+    const tabelaPA = {
+        masculino: {
+            5: { P90: {PAS: 107, PAD: 70}, P95: {PAS: 110, PAD: 74}, P99: {PAS: 114, PAD: 78} },
+            10: { P90: {PAS: 114, PAD: 75}, P95: {PAS: 118, PAD: 80}, P99: {PAS: 122, PAD: 84} },
+            15: { P90: {PAS: 125, PAD: 80}, P95: {PAS: 130, PAD: 85}, P99: {PAS: 135, PAD: 90} }
+        },
+        feminino: {
+            5: { P90: {PAS: 106, PAD: 69}, P95: {PAS: 109, PAD: 73}, P99: {PAS: 113, PAD: 77} },
+            10: { P90: {PAS: 113, PAD: 74}, P95: {PAS: 117, PAD: 78}, P99: {PAS: 121, PAD: 82} },
+            15: { P90: {PAS: 122, PAD: 78}, P95: {PAS: 127, PAD: 83}, P99: {PAS: 132, PAD: 88} }
+        }
+    };
 
-            const media = c.alpha + c.beta1 * idade + c.beta2 * Math.pow(idade, 2) + c.beta3 * Math.pow(idade, 3) + c.beta4 * Math.pow(idade, 4)
-                         + zht * (c.gamma1 + c.gamma2 * idade + c.gamma3 * Math.pow(idade, 2) + c.gamma4 * Math.pow(idade, 3));
+    function classificarPA() {
+        const idade = parseInt(document.getElementById("idade").value);
+        const sexo = document.getElementById("sexo").value;
+        const altura = parseInt(document.getElementById("altura").value);
+        const pas = parseInt(document.getElementById("pas").value);
+        const pad = parseInt(document.getElementById("pad").value);
 
-            const zscore = (pa - media) / c.sigma;
-            const percentil = (0.5 * (1 + erf(zscore / Math.SQRT2))) * 100;
-
-            document.getElementById('resultado').innerText = `Média: ${media.toFixed(2)} mmHg | Z-score: ${zscore.toFixed(2)} | Percentil: ${percentil.toFixed(1)}%`;
+        if (!idade || !sexo || !altura || !pas || !pad) {
+            document.getElementById("resultado").innerHTML = "⚠️ Preencha todos os campos corretamente.";
+            return;
         }
 
-        function erf(x) {
-            const sign = (x >= 0) ? 1 : -1;
-            x = Math.abs(x);
-            const a1 = 0.254829592, a2 = -0.284496736, a3 = 1.421413741, a4 = -1.453152027, a5 = 1.061405429;
-            const p = 0.3275911;
-            const t = 1 / (1 + p * x);
-            const y = 1 - (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t * Math.exp(-x * x);
-            return sign * y;
+        let ref = tabelaPA[sexo][idade];
+        if (!ref) {
+            document.getElementById("resultado").innerHTML = "⚠️ Não há dados para esta idade na tabela.";
+            return;
         }
-    </script>
+
+        let classificacao = "";
+        if (pas < ref.P90.PAS && pad < ref.P90.PAD) {
+            classificacao = "Pressão Arterial Normal";
+        } else if ((pas >= ref.P90.PAS && pas < ref.P95.PAS) || (pad >= ref.P90.PAD && pad < ref.P95.PAD)) {
+            classificacao = "Pressão Arterial Elevada (Pré-hipertensão)";
+        } else if ((pas >= ref.P95.PAS && pas < ref.P99.PAS) || (pad >= ref.P95.PAD && pad < ref.P99.PAD)) {
+            classificacao = "Hipertensão Estágio 1";
+        } else {
+            classificacao = "Hipertensão Estágio 2";
+        }
+
+        document.getElementById("resultado").innerHTML = `
+            <strong>Classificação:</strong> ${classificacao}<br>
+            <strong>Valores de Referência para ${idade} anos (${sexo}):</strong><br>
+            P90: ${ref.P90.PAS}/${ref.P90.PAD} mmHg<br>
+            P95: ${ref.P95.PAS}/${ref.P95.PAD} mmHg<br>
+            P99: ${ref.P99.PAS}/${ref.P99.PAD} mmHg
+        `;
+    }
+</script>
+
 </body>
 </html>
