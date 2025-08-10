@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Percentil de Pressão Arterial Pediátrica</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        label { display: block; margin-top: 10px; }
+        select, input { padding: 5px; margin-top: 5px; }
+        button { margin-top: 15px; padding: 8px 12px; }
+        .resultado { margin-top: 20px; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <h1>Calculadora de Percentil - PA Pediátrica</h1>
+
+    <label>Sexo:
+        <select id="sexo">
+            <option value="M">Masculino</option>
+            <option value="F">Feminino</option>
+        </select>
+    </label>
+
+    <label>Tipo de Pressão:
+        <select id="tipo">
+            <option value="SBP">Sistólica (SBP)</option>
+            <option value="DBP">Diastólica (DBP)</option>
+        </select>
+    </label>
+
+    <label>Idade (anos): <input type="number" id="idade" step="0.1"></label>
+    <label>Z Altura (Zht): <input type="number" id="zht" step="0.01"></label>
+    <label>Valor PA (mmHg): <input type="number" id="pa" step="0.1"></label>
+
+    <button onclick="calcularPercentil()">Calcular</button>
+
+    <div class="resultado" id="resultado"></div>
+
+    <script>
+        const coeficientes = {
+            M: {
+                SBP: { alpha: 102.19768, beta1: 1.82416, beta2: 0.12794, beta3: -0.00235, beta4: 0.00146, gamma1: 2.73157, gamma2: 0.21844, gamma3: -0.00135, gamma4: -0.01014, sigma: 10.7128 },
+                DBP: { alpha: 61.10206, beta1: 0.93801, beta2: 0.15915, beta3: -0.00412, beta4: 0.00092, gamma1: 1.15633, gamma2: 0.06492, gamma3: -0.00107, gamma4: -0.00218, sigma: 8.6741 }
+            },
+            F: {
+                SBP: { alpha: 102.01027, beta1: 1.91542, beta2: 0.02135, beta3: 0.00096, beta4: 0.00105, gamma1: 2.77393, gamma2: 0.08445, gamma3: 0.00123, gamma4: -0.00944, sigma: 10.4855 },
+                DBP: { alpha: 60.57968, beta1: 1.07542, beta2: 0.07624, beta3: -0.00199, beta4: 0.00064, gamma1: 1.19016, gamma2: 0.04356, gamma3: -0.00012, gamma4: -0.00170, sigma: 8.4301 }
+            }
+        };
+
+        function calcularPercentil() {
+            const sexo = document.getElementById('sexo').value;
+            const tipo = document.getElementById('tipo').value;
+            const idade = parseFloat(document.getElementById('idade').value);
+            const zht = parseFloat(document.getElementById('zht').value);
+            const pa = parseFloat(document.getElementById('pa').value);
+
+            if (isNaN(idade) || isNaN(zht) || isNaN(pa)) {
+                document.getElementById('resultado').innerText = 'Preencha todos os campos corretamente.';
+                return;
+            }
+
+            const c = coeficientes[sexo][tipo];
+
+            const media = c.alpha + c.beta1 * idade + c.beta2 * Math.pow(idade, 2) + c.beta3 * Math.pow(idade, 3) + c.beta4 * Math.pow(idade, 4)
+                         + zht * (c.gamma1 + c.gamma2 * idade + c.gamma3 * Math.pow(idade, 2) + c.gamma4 * Math.pow(idade, 3));
+
+            const zscore = (pa - media) / c.sigma;
+            const percentil = (0.5 * (1 + erf(zscore / Math.SQRT2))) * 100;
+
+            document.getElementById('resultado').innerText = `Média: ${media.toFixed(2)} mmHg | Z-score: ${zscore.toFixed(2)} | Percentil: ${percentil.toFixed(1)}%`;
+        }
+
+        function erf(x) {
+            const sign = (x >= 0) ? 1 : -1;
+            x = Math.abs(x);
+            const a1 = 0.254829592, a2 = -0.284496736, a3 = 1.421413741, a4 = -1.453152027, a5 = 1.061405429;
+            const p = 0.3275911;
+            const t = 1 / (1 + p * x);
+            const y = 1 - (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t * Math.exp(-x * x);
+            return sign * y;
+        }
+    </script>
+</body>
+</html>
